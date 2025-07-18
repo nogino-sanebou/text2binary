@@ -2,5 +2,10 @@
 name = "text2binary"
 version = "1.0.0"
 edition = "2024"
+description = "Converts a string representation of a hexadecimal number to a Vec<u8>"
+authors = ["nogino sanebou"]
+license = "MIT"
+repository = "https://github.com/nogino-sanebou/text2binary"
+exclude = [".github", ".gitignore", "tests", ".idea"]
 
 [dependencies]
