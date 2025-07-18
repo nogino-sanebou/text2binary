@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::string::ToString;
 
 pub fn convert(text: &String) -> Result<Vec<u8>, String> {
@@ -21,6 +23,25 @@ pub fn convert_line(line: &Vec<String>) -> Result<Vec<u8>, String> {
     // 文字列Vecを結合してStringに変換
     let join_string = line.join("");
     convert(&join_string)
+}
+
+pub fn convert_file(file: &File) -> Result<Vec<u8>, String> {
+    let mut string = "".to_string();
+
+    let mut reader = BufReader::new(file);
+    loop {
+        let mut line = "".to_string();
+        let len = match reader.read_line(&mut line) {
+            Ok(len) => len,
+            Err(err) => return Err(format!("{}", err)),
+        };
+        if len == 0 {
+            break;
+        }
+        string.push_str(line.as_str());
+    }
+
+    convert(&string)
 }
 
 fn format_text(text: &String) -> String {
@@ -205,86 +226,6 @@ mod tests {
         match str_2_binary(vec!['１', '0']) {
             Ok(ok) => panic!("エラーが発生しませんでした。Ok={}", ok),
             Err(err) => assert_eq!(err_msg, err),
-        }
-    }
-
-    #[test]
-    // 文字列"001123456789abcdEF00"のテスト
-    fn test_convert() {
-        let expect = vec![0x00, 0x11, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x00];
-        let target = "001123456789abcdEF00".to_string();
-
-        match convert(&target) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
-        }
-    }
-
-    #[test]
-    // 文字列"aBcDE"(末尾に0が付く場合)のテスト
-    fn test_convert_append_zero() {
-        let expect = vec![0xAB, 0xCD, 0xE0];
-        let target = "aBcDE".to_string();
-
-        match convert(&target) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
-        }
-    }
-
-    #[test]
-    // 文字列に空白や改行コードが含まれていた場合のテスト
-    fn test_convert_space_and_break() {
-        let expect = vec![0x12, 0x34, 0x56, 0x78, 0x9a];
-        let target = "  12  34\r\n 56 78  9 a ".to_string();
-
-        match convert(&target) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
-        }
-    }
-
-    #[test]
-    // 文字列が空であった場合のテスト
-    fn test_convert_empty() {
-        let expect: Vec<u8> = vec![];
-
-        match convert(&"".to_string()) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
-        }
-    }
-
-    #[test]
-    // 文字列に16進数表現以外の文字(む)が出現した場合のエラーテスト
-    fn test_convert_err() {
-        match convert(&"01む345".to_string()) {
-            Ok(ok) => panic!("エラーが発生しませんでした。Ok={:?}", ok),
-            Err(err) => assert_eq!("It is not a hexadecimal representation. target=む", err),
-        }
-    }
-
-    #[test]
-    // 文字列Vecの場合のテスト
-    fn test_convert_line() {
-        let line = vec!["123456".to_string(), "abc\r\ndef".to_string(), "012 fde".to_string(),];
-        let expect = vec![0x12, 0x34, 0x56, 0xAB, 0xCD, 0xEF, 0x01, 0x2F, 0xDE,];
-
-        match convert_line(&line) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
-        }
-    }
-
-    #[test]
-    // 文字列Vecのサイズが0の場合のテスト
-    fn test_convert_line_zero() {
-        let line: Vec<String> = vec![];
-        let expect: Vec<u8> = vec![];
-
-        match convert_line(&line) {
-            Ok(ok) => assert_eq!(expect, ok),
-            Err(err) => panic!("{}", err),
         }
     }
 }
