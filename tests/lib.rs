@@ -1,7 +1,6 @@
 extern crate text2binary;
 
 use std::fs::File;
-use text2binary::convert_file;
 
 #[test]
 // 文字列"001123456789abcdEF00"のテスト
@@ -31,7 +30,8 @@ fn test_convert_append_zero() {
 // 文字列に空白や改行コードが含まれていた場合のテスト
 fn test_convert_space_and_break() {
     let expect = vec![0x12, 0x34, 0x56, 0x78, 0x9a];
-    let target = "  12  34\r\n 56 78  9 a ".to_string();
+    let target = r#"  12  34
+    56 78  9 a "#.to_string();
 
     match text2binary::convert(&target) {
         Ok(ok) => assert_eq!(expect, ok),
@@ -91,7 +91,7 @@ fn test_convert_file() {
 
     match file {
         Ok(file) => {
-            match convert_file(&file) {
+            match text2binary::convert_file(&file) {
                 Ok(ok) => assert_eq!(expect, ok),
                 Err(err) => panic!("{}", err),
             }
@@ -101,13 +101,14 @@ fn test_convert_file() {
 }
 
 #[test]
+// テキストファイル(空行含む)の場合のテスト
 fn test_convert_file_blank_line() {
-    let file = File::open("./tests/target.txt");
-    let expect = vec![0x00, 0x12, 0x34, 0x56, 0x78, 0xAB, 0xCD, 0xEF, 0x00];
+    let file = File::open("./tests/target2.txt");
+    let expect = vec![0xCD, 0xEF, 0x00, 0x56, 0x78, 0xAB, 0x00, 0x12, 0x34];
 
     match file {
         Ok(file) => {
-            match convert_file(&file) {
+            match text2binary::convert_file(&file) {
                 Ok(ok) => assert_eq!(expect, ok),
                 Err(err) => panic!("{}", err),
             }
