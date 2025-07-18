@@ -1,6 +1,6 @@
 [package]
 name = "text2binary"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 description = "Converts a string representation of a hexadecimal number to a Vec<u8>"
 authors = ["nogino sanebou"]
